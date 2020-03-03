@@ -73,7 +73,7 @@ def on_release(key):
             RECMODE = False
             ENDREC = False
             del COMMANDLOG[-(len(KEY_STOP)) * 2::1]  # Rimuove gli ultimi valori della lista
-            repeater(CICLI, LOOP)
+            # repeater(CICLI, LOOP)
 
 
 def on_press(key):
@@ -166,6 +166,10 @@ def repeater(cicli=1, loop=False):
     for command in commandList:"""
 
     windowMain["fase"].update("REPLAY Attivo")
+    try:
+        windowWidget["cicliText"].update("RIPETO")
+    except:
+        print("non in widget mode")
     mListenerR = mouse.Listener(on_click=on_click, on_scroll=on_scroll)
     klistenerR = keyboard.Listener(on_press=on_press, on_release=on_release)
     mListenerR.start()
@@ -216,6 +220,10 @@ def repeater(cicli=1, loop=False):
     klistenerR.stop()
     REPLAY = False
     windowMain["fase"].update("")
+    try:
+        windowWidget["cicliText"].update("N cicli: ")
+    except:
+        print("non in widget mode")
 
 
 mListener = mouse.Listener(on_click=on_click, on_scroll=on_scroll)
@@ -283,33 +291,14 @@ while True:
                 break
         if filename:
             if COMMANDLOG:
-                control = storeData(filename, EXPORTHEADER, "w")
-                if control:
-                    for command in COMMANDLOG:
-                        if "click" in command:
-                            type = "click"
-                        elif "key" in command:
-                            type = "key"
-                        elif "releasekey" in command:
-                            type = "releasekey"
-                        elif "scroll" in command:
-                            type = "scroll"
-                        value = command[type]
-                        if "button" in command:
-                            button = command["button"]
-                        else:
-                            button = ""
-                        if "move" in command:
-                            move = command["move"]
-                        else:
-                            move = ""
-                        atime = command["time"]
-                        # storeData(filename, [type, value, button, move, atime])
-                        afile = open(filename, 'wb')
-                        pickle.dump(COMMANDLOG, afile)
-                        afile.close()
+                try:
+                    afile = open(filename, 'wb')
+
+                    pickle.dump(COMMANDLOG, afile)
+
+                    afile.close()
                     sg.PopupOK('File esportato con successo')
-                else:
+                except:
                     sg.PopupOK("Salvataggio non avvenuto. Controllare che il file non sia aperto")
             else:
                 sg.PopupOK("Non c'è nulla da esportare. Registra prima qualcosa")
@@ -332,7 +321,7 @@ while True:
             print(COMMANDLOG)
             sg.PopupOK("Comandi importati correttamente")
     elif event == "widget":
-        layoutWidget = [[sg.Text('N cicli: '), sg.InputText("1", key='cicli', size=(5, 1)),
+        layoutWidget = [[sg.Text('N cicli: ', key="cicliText"), sg.InputText("1", key='cicli', size=(5, 1)),
                          sg.Button('Imposta', key='impostaCicli'),
                          sg.Button('Loop', key='loop',
                                    tooltip="Terminata la registrazione, ripeterà i comandi all'infinito")],
@@ -341,15 +330,14 @@ while True:
                          sg.Button('Esporta', key='esporta'),
                          sg.Button('Importa', key='importa'),
                          sg.Exit(button_color=('white', 'firebrick4'), key='Exit')]]
-        windowWidget = sg.Window('Automator', layoutWidget, grab_anywhere=True, auto_size_buttons=True, keep_on_top=True,
+        windowWidget = sg.Window('Automator', layoutWidget, grab_anywhere=True, auto_size_buttons=True,
+                                 keep_on_top=True,
                                  no_titlebar=True)
 
         windowMain.Hide()
         while True:
             eventWidget, valuesWidget = windowWidget.read()
             if eventWidget is None or eventWidget == 'Exit':  # ALWAYS give a way out of program
-                mListener.stop()
-                klistener.stop()
                 windowWidget.Close()
                 windowMain.UnHide()
                 break
