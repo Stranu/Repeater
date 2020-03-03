@@ -210,6 +210,8 @@ def repeater(cicli=1, loop=False):
                 # time.sleep(0.1)
                 kController.release(command["releasekey"])
             oldCommand = command
+            if not REPLAY:
+                break
         print(f"Giro {cicli} concluso")
         if loop:
             cicli += 1
